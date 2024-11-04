@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 import argparse
 import pathlib
@@ -13,7 +13,7 @@ executable = pathlib.Path(args.executable)
 
 assert directory.is_dir()
 
-header = b'#!/usr/bin/env python3\n'
+header = b'#!/usr/bin/python3\n'
 
 binary = subprocess.run(
             ['zip', '-', '--recurse-paths', '-9', '.', ],
