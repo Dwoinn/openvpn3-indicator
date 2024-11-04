@@ -25,6 +25,7 @@ import logging
 import re
 import time
 import traceback
+import pyotp
 
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
@@ -586,6 +587,7 @@ class Application(Gtk.Application):
 
     def action_get_credentials(self, _object, session_id, required_credentials, force_ui=False):
         credentials = dict()
+        required_credentials.append(['Auth TOTP key', True, True])
         required_keys = set([ description for description, mask, can_store in required_credentials ])
         config_id = self.session_configs.get(session_id, None)
         if config_id is not None:
@@ -594,6 +596,7 @@ class Application(Gtk.Application):
                     credentials[key] = value
 
         require_ui = False
+
         for key in required_keys:
             if key not in credentials:
                 require_ui = True
@@ -641,6 +644,10 @@ class Application(Gtk.Application):
 
     def on_session_credentials(self, session_id, credentials):
         session = self.sessions[session_id]
+        if credentials['Auth TOTP key'] != '':
+            totp = pyotp.TOTP(credentials['Auth TOTP key'], digits=6)
+            credentials['Auth Password'] += totp.now()
+        del credentials['Auth TOTP key']
         try:
             for input_slot in session.FetchUserInputSlots():
                 if input_slot.GetTypeGroup()[0] != openvpn3.ClientAttentionType.CREDENTIALS:
